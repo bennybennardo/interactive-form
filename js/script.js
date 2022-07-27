@@ -64,11 +64,11 @@ design.addEventListener('change', () => {
 //If the activity is unchecked, the cost will be removed from the total.
 //The number of activities is stored as a variable for form validation.
 
-const activities = document.getElementById('activities');
+const activitiesField = document.getElementById('activities');
 let totalCost = 0;
 let totalActivities = 0;
 
-activities.addEventListener('change', e => {
+activitiesField.addEventListener('change', e => {
     let activity = e.target;
     let activityCost = parseInt(activity.getAttribute('data-cost'));
     let totalDisplay = document.getElementById('activities-cost');
@@ -168,25 +168,23 @@ const cvvValidator = () => {
 
 const nameField = userName.parentElement;
 const emailField = email.parentElement;
-const activitiesField = activities;
-console.log(activitiesField)
-
-
+const cardField = document.getElementById('cc-num').parentElement;
+const zipField = document.getElementById('zip').parentElement;
+const cvvField = document.getElementById('cvv').parentElement;
 
 form.addEventListener('submit', e => {
 
     function notValid(field) {
-        field.className = 'not-valid';
+        field.classList.add('not-valid');
         field.classList.remove('valid');
         field.lastElementChild.style.display = 'block';
         e.preventDefault();
     }
     
     function valid(field) {
-        field.className = 'valid';
+        field.classList.add('valid');
         field.classList.remove('not-valid');
         field.lastElementChild.removeAttribute('style');
-    
     }
 
     if (!nameValidator()) {
@@ -201,42 +199,42 @@ form.addEventListener('submit', e => {
         valid(emailField);
     }
 
-    //The rest of this section does not have functioning accessibility 
-
     if (!activitiesValidator()) {
-        activitiesField.className = 'not-valid';
-        activitiesField.classList.remove('valid');
-        activitiesField.lastElementChild.style.display = 'block';
-        e.preventDefault();
-    
+        notValid(activitiesField);  
     } else if (activitiesValidator()) {
-        activitiesField.className = 'valid';
-        activitiesField.classList.remove('not-valid');
-        activitiesField.lastElementChild.removeAttribute('style');
-        console.log(activitiesField.lastElementChild)
+        valid(activitiesField);
+    } 
     
+    if ( payment.selectedIndex === 1 ) {
+        if (!cardValidator()) {
+            notValid(cardField);
+        } else if (cardValidator()) {
+            valid(cardField);
+        }
 
-    } else if ( payment.selectedIndex === 1 ) {
-        if (!cardValidator() || 
-            !zipValidator() || 
-            !cvvValidator()) {
+        if (!zipValidator()) {
+            notValid(zipField);
+        } else if (zipValidator()) {
+            valid(zipField);
+        }
 
-            e.preventDefault();
+        if (!cvvValidator()) {
+            notValid(cvvField);
+        } else if (cvvValidator()) {
+            valid(cvvField);
         }
     }
 });
 
+
 //Accessibility
 
 let checkboxes = form.querySelectorAll('input[type="checkbox"]');
-console.log(checkboxes);
-console.log(checkboxes[1]);
 
 for ( let i = 0; i < checkboxes.length; i++ ) {
 
     checkboxes[i].addEventListener('focus', e => {
         e.target.parentElement.className = 'focus'
-        console.log('focus works')
     })
 
     checkboxes[i].addEventListener('blur', e => {
