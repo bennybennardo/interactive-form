@@ -57,33 +57,81 @@ design.addEventListener('change', () => {
             }
         }
     } 
-})
+});
 
-//This listens for users to check or uncheck an activity. 
-//If the activity is checked, the cost will be reflected in the total.
-//If the activity is unchecked, the cost will be removed from the total.
-//The number of activities is stored as a variable for form validation.
+/*This listens for users to check/uncheck to select/deselect an activity. 
+
+  The for loop checks for scheduling conflicts. If the activity is selected, 
+  all other activities taking place at the same time will be disabled. 
+  If the activity is deselected, the conflicting activities will be reenabled.
+
+  The final conditional creates a running total of the activities' cost.
+  If the activity is selected, the cost will be added to the total.
+  If the activity is deselected, the cost will be removed from the total.
+
+  The number of activities is stored as a variable for form validation.*/
 
 const activitiesField = document.getElementById('activities');
 let totalCost = 0;
-let totalActivities = 0;
+let totalSelected = 0;
 
 activitiesField.addEventListener('change', e => {
-    let activity = e.target;
-    let activityCost = parseInt(activity.getAttribute('data-cost'));
-    let totalDisplay = document.getElementById('activities-cost');
+    const selected = e.target;
+    const selectedTime = e.target.getAttribute('data-day-and-time')
+    const selectedCost = parseInt(selected.getAttribute('data-cost'));
+    const totalDisplay = document.getElementById('activities-cost');
 
-    if ( activity.checked ) {
-        totalCost += activityCost;
-        totalActivities += 1;
+    for (let i = 0; i < checkboxes.length; i++) {
+
+        const otherActivity = checkboxes[i];
+        const otherActivityField = otherActivity.parentElement.classList;
+        const otherActivityTime = otherActivity.getAttribute('data-day-and-time');
+
+        if ( selected.checked ===  true && 
+            selected !== otherActivity && 
+            selectedTime === otherActivityTime) {
+
+            otherActivity.disabled = true;
+            otherActivityField.add('disabled');
+
+        } else if ( selected.checked === false && 
+            selected !== otherActivity && 
+            selectedTime === otherActivityTime ) {
+                
+            otherActivity.disabled = false;
+            otherActivityField.remove('disabled');
+        }
+    }
+
+    if ( selected.checked ) {
+        totalCost += selectedCost;
+        totalSelected += 1;
     } else {
-        totalCost -= activityCost;
-        totalActivities -= 1;
+        totalCost -= selectedCost;
+        totalSelected -= 1;
     }
 
     totalDisplay.textContent = `Total: $${totalCost}`;
 
 })
+
+//This section adds more noticable focus indicators
+//for the 'activities' section of the form.
+
+const form = document.querySelector('form');
+const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+
+for ( let i = 0; i < checkboxes.length; i++ ) {
+
+    checkboxes[i].addEventListener('focus', e => {
+        e.target.parentElement.classList.add('focus')
+    })
+
+    checkboxes[i].addEventListener('blur', e => {
+        e.target.parentElement.classList.remove('focus')
+    })
+ 
+}
 
 //This section displays the user's payment intofrmation.
 // It is set to display 'credit card' upon page load. 
@@ -123,12 +171,12 @@ payment.addEventListener('change', () => {
 
 //This is a series of functions to validate user input. 
 //The name, email, and activities functions are called upon the submission 
-//of the page, but page submission will be prevented if validation fails.
+//of the page, but page submission will be prevented if validation
+//fails and hints will be displayed on the invalid input field.
 //If the user selects to pay by credit card (payment index 1), 
 //the functions to validate the card number, zip code, and cvv
 //will also run and prevent submission if validation fails.
 
-const form = document.querySelector('form');
 const email = document.getElementById('email');
 
 const nameValidator = () => {
@@ -144,7 +192,7 @@ const emailValidator = () => {
 }
 
 const activitiesValidator = () => {
-    const activitiesSectionIsValid = totalActivities > 0;
+    const activitiesSectionIsValid = totalSelected > 0;
     return activitiesSectionIsValid;
 }
 
@@ -172,35 +220,52 @@ const cardField = document.getElementById('cc-num').parentElement;
 const zipField = document.getElementById('zip').parentElement;
 const cvvField = document.getElementById('cvv').parentElement;
 
-form.addEventListener('submit', e => {
+function notValid(field) {
+    field.classList.add('not-valid');
+    field.classList.remove('valid');
+    field.lastElementChild.style.display = 'block';
+}
 
-    function notValid(field) {
-        field.classList.add('not-valid');
-        field.classList.remove('valid');
-        field.lastElementChild.style.display = 'block';
-        e.preventDefault();
+function valid(field) {
+    field.classList.add('valid');
+    field.classList.remove('not-valid');
+    field.lastElementChild.removeAttribute('style');
+}
+
+userName.addEventListener('keyup', e => {
+
+    let nameHint = document.getElementById('name-hint')
+ 
+    if (!nameValidator() && userName.value === 0) {
+        nameHint.innerHTML = "Name field cannot be blank"
+        notValid(nameField);
+    } else if (!nameValidator() && userName.value > 0 ){
+        nameHint.innerHTML = "Name field can only include alphabetical characters"
+        notValid(nameField);
+    } else if (nameValidator()) {
+        valid(nameField);
     }
-    
-    function valid(field) {
-        field.classList.add('valid');
-        field.classList.remove('not-valid');
-        field.lastElementChild.removeAttribute('style');
-    }
+});
+
+form.addEventListener('submit', e => {
 
     if (!nameValidator()) {
         notValid(nameField);
+        e.preventDefault();
     } else if (nameValidator()) {
         valid(nameField);
     }
 
     if (!emailValidator()) {
         notValid(emailField);
+        e.preventDefault();
     } else if (emailValidator()) {
         valid(emailField);
     }
 
     if (!activitiesValidator()) {
-        notValid(activitiesField);  
+        notValid(activitiesField); 
+        e.preventDefault(); 
     } else if (activitiesValidator()) {
         valid(activitiesField);
     } 
@@ -208,38 +273,24 @@ form.addEventListener('submit', e => {
     if ( payment.selectedIndex === 1 ) {
         if (!cardValidator()) {
             notValid(cardField);
+            e.preventDefault();
         } else if (cardValidator()) {
             valid(cardField);
         }
 
         if (!zipValidator()) {
             notValid(zipField);
+            e.preventDefault();
         } else if (zipValidator()) {
             valid(zipField);
         }
 
         if (!cvvValidator()) {
             notValid(cvvField);
+            e.preventDefault();
         } else if (cvvValidator()) {
             valid(cvvField);
         }
     }
 });
-
-
-//Accessibility
-
-let checkboxes = form.querySelectorAll('input[type="checkbox"]');
-
-for ( let i = 0; i < checkboxes.length; i++ ) {
-
-    checkboxes[i].addEventListener('focus', e => {
-        e.target.parentElement.className = 'focus'
-    })
-
-    checkboxes[i].addEventListener('blur', e => {
-        e.target.parentElement.classList.remove('focus')
-    })
- 
-}
 
