@@ -238,10 +238,10 @@ userName.addEventListener('keyup', e => {
 
     let nameHint = document.getElementById('name-hint')
  
-    if (!nameValidator() && userName.value === 0) {
+    if (!nameValidator() && userName.value.length === 0) {
         nameHint.innerHTML = "Name field cannot be blank"
         notValid(nameField);
-    } else if (!nameValidator() && userName.value > 0 ){
+    } else if (!nameValidator() && userName.value.length > 0 ){
         nameHint.innerHTML = "Name field can only include alphabetical characters"
         notValid(nameField);
     } else if (nameValidator()) {
