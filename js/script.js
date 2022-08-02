@@ -38,6 +38,7 @@ design.addEventListener('change', () => {
     if (design.value === 'js puns') {
         for (let i = 0; i < color.length; i++) {
             color.disabled = false;
+            color.options[0].innerHTML = "Select a color"
             let colorOption = color.options[i];
             if (colorOption.dataset.theme === 'js puns' ) {
                 colorOption.hidden = false;
@@ -49,6 +50,7 @@ design.addEventListener('change', () => {
     } else if (design.value === 'heart js') {
         for (let i = 0; i < color.length; i++) {
             color.disabled = false;
+            color.options[0].innerHTML = "Select a color"
             let colorOption = color.options[i];
             if (colorOption.dataset.theme === 'heart js' ) {
                 colorOption.hidden = false;
@@ -293,4 +295,3 @@ form.addEventListener('submit', e => {
         }
     }
 });
-
